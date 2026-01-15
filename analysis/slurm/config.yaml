@@ -3,8 +3,8 @@
 # BrieFlow cluster configuration file
 
 default-resources:
-    slurm_partition: 20
-    slurm_account: wibrusers
+    # slurm_partition: 20
+    slurm_account: brangwynne
     mem_mb: 3000
     tasks: 1
     cpus_per_task: 1
@@ -23,13 +23,13 @@ set-resources:
     combine_metadata_phenotype:
         mem_mb: 2500
     convert_sbs:
-        mem_mb: 2000
+        mem_mb: 10000 #NJ change from 2000
     convert_ph:
-        mem_mb: 2000
+        mem_mb: 10000 #NJ change from 2000
     calculate_ic_sbs:
-        mem_mb: 50000
+        mem_mb: 150000
     calculate_ic_phenotype:
-        mem_mb: 500000
+        mem_mb: 6000000
 
     # sbs
     align_sbs:

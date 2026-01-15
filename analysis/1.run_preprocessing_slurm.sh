@@ -1,16 +1,30 @@
 #!/bin/bash
+#SBATCH --job-name=brieflow_test       # create a short name for your job
+#SBATCH --nodes=1                # node count
+#SBATCH --ntasks=1               # total number of tasks across all nodes
+#SBATCH --cpus-per-task=1        # cpu-cores per task (>1 if multi-threaded tasks)
+#SBATCH --mem-per-cpu=4G         # memory per cpu-core (4G is default)
+#SBATCH --mail-type=begin        # send email when job begins
+#SBATCH --mail-type=end          # send email when job ends
+#SBATCH --mail-user=nj6532@princeton.edu
+#SBATCH --time=24:00:00          # total run time limit (HH:MM:SS)
+#SBATCH --output=/scratch/gpfs/BRANGWYNNE/users/Shared/Nikhil - Nima/Olympus_mons_brieflow/analysis/brieflow_outputs/log/brieflow_OM_preprocessing.log
+
+#NJ added 20260104
+conda activate brieflow_OPS_pilot 
+echo "activated environment"
 
 # Log all output to a log file (stdout and stderr)
-mkdir -p slurm/slurm_output/main
+mkdir -p /scratch/gpfs/BRANGWYNNE/users/Shared/Nikhil - Nima/Olympus_mons_brieflow/analysis/brieflow_outputs/slurm/slurm_output/main
 start_time_formatted=$(date +%Y%m%d_%H%M%S)
-log_file="slurm/slurm_output/main/preprocessing-${start_time_formatted}.log"
+log_file="/scratch/gpfs/BRANGWYNNE/users/Shared/Nikhil - Nima/Olympus_mons_brieflow/analysis/brieflow_outputs/slurm/slurm_output/main/preprocessing-${start_time_formatted}.log"
 exec > >(tee -a "$log_file") 2>&1
 
 # Start timing
 start_time=$(date +%s)
 
 # TODO: Set number of plates to process
-NUM_PLATES=None
+NUM_PLATES=2
 
 echo "===== STARTING SEQUENTIAL PROCESSING OF $NUM_PLATES PLATES ====="
 
@@ -24,15 +38,20 @@ for PLATE in $(seq 1 $NUM_PLATES); do
     plate_start_time=$(date +%s)
     
     # Run Snakemake with plate filter for this plate
+    #NJ added
+        #changed latency 60-->300
+        # --jobs, --resources
     snakemake --executor slurm --use-conda \
         --workflow-profile "slurm/" \
         --snakefile "../brieflow/workflow/Snakefile" \
-        --configfile "config/config.yml" \
-        --latency-wait 60 \
+        --configfile "/scratch/gpfs/BRANGWYNNE/users/Shared/Nikhil - Nima/Olympus_mons_brieflow/analysis/config/config.yml" \
+        --latency-wait 300 \
         --rerun-triggers mtime \
         --keep-going \
         --until all_preprocess \
-        --config plate_filter=$PLATE
+        --config plate_filter=$PLATE \
+        --jobs 600 \
+        --resources mem_mb=250000
     
     # Check if Snakemake was successful
     if [ $? -ne 0 ]; then
